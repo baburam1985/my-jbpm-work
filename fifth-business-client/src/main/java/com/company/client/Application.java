@@ -37,7 +37,7 @@ public class Application implements CommandLineRunner  {
 	@Override
 	public void run(String... args) throws Exception {
         containerId = "Evaluation_1.0.0-SNAPSHOT";
-        serverBaseUrl = "http://localhost:8080";
+        serverBaseUrl = "http://localhost:8090";
         serverRestUrl = serverBaseUrl + "/rest/server";
         runCustomApi();
         runjBPMClient();
