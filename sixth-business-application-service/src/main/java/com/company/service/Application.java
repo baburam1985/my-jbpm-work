@@ -1,10 +1,14 @@
 package com.company.service;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.mail.Address;
+import javax.mail.internet.MimeMessage;
 
 import org.jbpm.services.api.ProcessService;
 import org.jbpm.services.api.RuntimeDataService;
@@ -24,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.icegreen.greenmail.spring.GreenMailBean;
+import com.icegreen.greenmail.util.GreenMail;
 
 @SpringBootApplication
 @RestController
@@ -35,6 +40,9 @@ public class Application  {
     private RuntimeDataService runtimeDataService;
     @Autowired
     private UserTaskService userTaskService;
+
+    @Autowired 
+    private GreenMailBean greenMailBean;
 
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
@@ -96,5 +104,25 @@ public class Application  {
     	VariableInstanceList vi = ConvertUtils.convertToVariablesList(runtimeDataService.getVariablesCurrentState(processInstanceId));
     	return ResponseEntity.ok(Arrays.asList(vi.getVariableInstances()));
     }
-    
+    @GetMapping("/emails")
+    public ResponseEntity<List<String>> instances() throws Exception {
+//    	List<ProcessInstanceWithVarsDesc> result = queryService.query("getVariablesCurrentState", ProcessInstanceWithVarsQueryMapper.get(), new QueryContext(), QueryParam.equalsTo(COLUMN_PROCESSINSTANCEID, 1L));
+//    	System.out.println(result);
+    	GreenMail greenMail = greenMailBean.getGreenMail();
+    	MimeMessage[] emails = greenMail.getReceivedMessages();
+    	List<String> emailStrings = new ArrayList<>();
+    	for ( MimeMessage email: emails ) {
+    		StringBuilder sb = new StringBuilder();
+    		for ( Address from: email.getFrom()) {
+        		sb.append(" From["+from.toString()+"]");
+    		}
+    		for ( Address recip: email.getAllRecipients()) {
+        		sb.append(" Recipient["+recip.toString()+"]");
+    		}
+    		sb.append(" Subject["+email.getSubject()+"]");
+    		sb.append(" Content["+email.getContent()+"]");
+    		emailStrings.add(sb.toString());
+    	}
+    	return ResponseEntity.ok(emailStrings);
+    }
 }
